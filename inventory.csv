@@ -1,0 +1,7 @@
+ingredient,stock_quantity,unit,minimum_stock,purchase_cost,incoming_stock,safety_stock
+Flour,3000.0,g,500.0,0.04,0.0,300.0
+Cheese,800.0,g,200.0,0.35,0.0,150.0
+Paneer,700.0,g,200.0,0.45,0.0,150.0
+Bread,20.0,slices,6.0,2.0,0.0,4.0
+Tea,500.0,g,100.0,0.12,0.0,100.0
+Milk,2000.0,ml,500.0,0.08,0.0,300.0
