@@ -154,9 +154,9 @@ def purchase_table(inventory, requirements):
     return result
 
 ensure_files()
-st.set_page_config(page_title="Vaishnavi Restaurant Management System", layout="wide")
-st.title("Vaishnavi Restaurant Management System")
-st.caption("Class 12 CBSE Artificial Intelligence Project | Code 834")
+st.set_page_config(page_title="FOOD DINING RESTAURANT", layout="wide")
+st.title("FOOD DINING RESTAURANT")
+
 with st.sidebar:
     st.header("Navigation")
     page = st.radio("Open section", ["Dashboard", "Sales Entry & History", "Sales Prediction", "Inventory", "Recipes", "Purchase Recommendations", "CSV Data"])
