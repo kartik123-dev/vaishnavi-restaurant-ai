@@ -234,7 +234,7 @@ PAGE_COPY = {
  "Recipes": ("MENU ENGINEERING", "Recipe builder", "Connect each menu item to the ingredients it consumes."),
  "Purchase Recommendations": ("PROCUREMENT", "Smart purchase planner", "Plan ingredient orders using forecast demand and available stock."),
  "CSV Data": ("DATA WORKSPACE", "Menu & data management", "Manage your menu and export the records behind your dashboard."),
- "AI Assistant": ("GEMINI AI", "Restaurant AI Assistant", "Ask questions about sales, menu performance and ingredient stock."),
+ "AI Assistant": ("OFFLINE SMART ASSISTANT", "Restaurant AI Assistant", "Ask questions about sales, menu performance and ingredient stock — no API key needed."),
 }
 kicker, heading, subheading = PAGE_COPY[page]
 st.markdown(f'<div class="hero"><div class="hero-kicker">{kicker}</div><div class="hero-title">{heading}</div><div class="hero-sub">{subheading}</div></div>', unsafe_allow_html=True)
@@ -252,82 +252,102 @@ def money(value): return f"₹{float(value):,.2f}"
 
 if page == "AI Assistant":
     st.markdown("""<div class="section-label">ASK YOUR RESTAURANT DATA</div>
-    <p style="color:#aab7cc">Your assistant can explain the figures in your saved sales and inventory records. It does not change or delete your data.</p>""", unsafe_allow_html=True)
-    try:
-        gemini_key = st.secrets.get("GEMINI_API_KEY", "")
-    except Exception:
-        gemini_key = ""
+    <p style="color:#aab7cc">This assistant works locally using your saved CSV data and a small machine-learning intent classifier. No Gemini API, API key or external AI service is required.</p>""", unsafe_allow_html=True)
 
-    if not gemini_key:
-        st.warning("Gemini API key is not configured yet.")
-        st.markdown("In Streamlit Cloud, open your app → Settings / Manage app → Secrets and add:")
-        st.code('GEMINI_API_KEY = "paste_your_new_key_here"', language="toml")
-        st.caption("Keep the key private. Never put it in this Python file or commit it to GitHub.")
-    else:
-        if "restaurant_ai_messages" not in st.session_state:
-            st.session_state.restaurant_ai_messages = []
-        for message in st.session_state.restaurant_ai_messages:
-            with st.chat_message(message["role"]):
-                st.markdown(message["content"])
+    # Small supervised intent model: trained on example questions at app startup.
+    # Rules below provide deterministic, data-grounded answers for each intent.
+    INTENT_EXAMPLES = {
+        "sales_total": ["what are total sales", "total revenue", "how much money did we make", "show overall sales", "total income"],
+        "best_seller": ["best selling item", "which food sells most", "top menu item", "most popular dish", "highest selling product"],
+        "sales_by_item": ["sales by item", "item wise revenue", "how much did pizza sell", "show menu performance", "revenue for each dish"],
+        "daily_sales": ["today sales", "daily revenue", "sales by date", "show daily totals", "recent sales trend"],
+        "low_stock": ["which ingredients are low", "low stock items", "what should we purchase", "ingredients below minimum", "stock shortage"],
+        "inventory": ["show inventory", "check stock", "how much stock is available", "ingredient list", "inventory status"],
+        "menu": ["show menu", "what food items are available", "list menu items", "our dishes", "menu list"],
+        "recipes": ["show recipes", "ingredients in pizza", "recipe details", "what goes into each dish", "recipe list"],
+        "help": ["help", "what can you do", "how to use this assistant", "hello", "hi"],
+    }
 
-        prompt = st.chat_input("Ask about sales, stock, menu or purchases...")
-        if prompt:
-            st.session_state.restaurant_ai_messages.append({"role": "user", "content": prompt})
-            with st.chat_message("user"):
-                st.markdown(prompt)
+    def classify_question(question):
+        try:
+            from sklearn.feature_extraction.text import TfidfVectorizer
+            from sklearn.linear_model import LogisticRegression
+            texts, labels = [], []
+            for label, examples in INTENT_EXAMPLES.items():
+                texts.extend(examples)
+                labels.extend([label] * len(examples))
+            vectorizer = TfidfVectorizer(ngram_range=(1, 2), strip_accents="unicode")
+            matrix = vectorizer.fit_transform(texts)
+            model = LogisticRegression(max_iter=500, random_state=42)
+            model.fit(matrix, labels)
+            scores = model.predict_proba(vectorizer.transform([question]))[0]
+            best = int(scores.argmax())
+            if float(scores[best]) >= 0.20:
+                return model.classes_[best]
+        except Exception:
+            pass
+        q = question.lower()
+        if any(w in q for w in ["low stock", "shortage", "below minimum", "purchase", "reorder"]): return "low_stock"
+        if any(w in q for w in ["inventory", "stock", "ingredient"]): return "inventory"
+        if any(w in q for w in ["recipe", "ingredients in"]): return "recipes"
+        if any(w in q for w in ["menu", "dish", "food item"]): return "menu"
+        if any(w in q for w in ["best", "top", "popular", "most sell"]): return "best_seller"
+        if any(w in q for w in ["daily", "today", "date", "recent"]): return "daily_sales"
+        if any(w in q for w in ["item wise", "by item", "each item", "performance"]): return "sales_by_item"
+        if any(w in q for w in ["sale", "revenue", "income", "money", "earn"]): return "sales_total"
+        return "help"
 
-            # Send only aggregated restaurant figures, not raw transaction rows.
-            if sales.empty:
-                sales_summary = "No sales have been recorded yet."
-            else:
-                by_item = sales.groupby("item", as_index=False).agg(units=("quantity", "sum"), revenue=("revenue", "sum"))
-                by_day = sales.groupby("date", as_index=False).agg(units=("quantity", "sum"), revenue=("revenue", "sum"))
-                sales_summary = (
-                    f"Total revenue: ₹{sales['revenue'].sum():.2f}; total units: {sales['quantity'].sum():.0f}; "
-                    f"recorded sales days: {sales['date'].nunique()}.\n"
-                    f"Sales by menu item: {by_item.to_dict(orient='records')}.\n"
-                    f"Recent daily totals: {by_day.tail(14).to_dict(orient='records')}."
-                )
-            inventory_summary = (
-                inventory[["ingredient", "stock_quantity", "unit", "minimum_stock", "incoming_stock", "safety_stock"]]
-                .to_dict(orient="records") if not inventory.empty else []
-            )
-            menu_summary = menu_items
-            recipe_summary = recipes.to_dict(orient="records") if not recipes.empty else []
-            business_context = (
-                "RESTAURANT DATA (use these figures as the source of truth):\n"
-                f"Sales summary: {sales_summary}\n"
-                f"Menu items: {menu_summary}\n"
-                f"Inventory: {inventory_summary}\n"
-                f"Recipes: {recipe_summary}\n\n"
-                "You are Restaurant AI Assistant. Answer clearly and concisely. Use Indian rupees (₹). "
-                "If data is missing, say so instead of guessing. Distinguish recorded facts from estimates. "
-                "Do not invent sales, prices, stock or predictions. You may calculate simple totals from the supplied data. "
-                "You cannot modify files, place orders, or perform transactions."
-            )
-            history = st.session_state.restaurant_ai_messages[-8:]
-            conversation = "\n".join(
-                ("User: " if m["role"] == "user" else "Assistant: ") + m["content"]
-                for m in history
-            )
-            with st.chat_message("assistant"):
-                with st.spinner("Checking your restaurant data..."):
-                    try:
-                        from google import genai
-                        client = genai.Client(api_key=gemini_key)
-                        response = client.models.generate_content(
-                            model="gemini-3.8-flash",
-                            contents=business_context + "\n\nConversation:\n" + conversation,
-                        )
-                        answer = (response.text or "I couldn't create a text response. Please try again.").strip()
-                    except Exception:
-                        answer = "I couldn't connect to Gemini right now. Check that your API key is valid, the Gemini API is enabled, and your free-tier request limit has not been reached."
-                st.markdown(answer)
-            st.session_state.restaurant_ai_messages.append({"role": "assistant", "content": answer})
+    def answer_question(question):
+        intent = classify_question(question)
+        if intent == "sales_total":
+            if sales.empty: return "No sales have been recorded yet. Add entries in Sales & History first."
+            return f"Your recorded total revenue is {money(sales['revenue'].sum())} from {sales['quantity'].sum():.0f} items across {sales['date'].nunique()} sales days."
+        if intent in ("best_seller", "sales_by_item"):
+            if sales.empty: return "There is no sales history yet, so I can't identify a best-selling item."
+            summary = sales.groupby("item", as_index=False).agg(quantity=("quantity", "sum"), revenue=("revenue", "sum")).sort_values(["quantity", "revenue"], ascending=False)
+            if intent == "best_seller":
+                top = summary.iloc[0]
+                return f"Your top-selling item by quantity is **{top['item']}** with {top['quantity']:.0f} units sold and {money(top['revenue'])} revenue."
+            return "**Sales by menu item**\n\n" + summary.to_markdown(index=False)
+        if intent == "daily_sales":
+            if sales.empty: return "No daily sales are recorded yet."
+            daily = sales.groupby("date", as_index=False).agg(quantity=("quantity", "sum"), revenue=("revenue", "sum")).sort_values("date", ascending=False).head(7)
+            return "**Most recent recorded sales days**\n\n" + daily.to_markdown(index=False)
+        if intent == "low_stock":
+            if inventory.empty: return "Your inventory is empty. Add ingredients in the Inventory section."
+            low = inventory[inventory["stock_quantity"] <= inventory["minimum_stock"]]
+            if low.empty: return "Good news! No ingredients are currently at or below their minimum-stock level."
+            return "**Ingredients at or below minimum stock**\n\n" + low[["ingredient", "stock_quantity", "unit", "minimum_stock"]].to_markdown(index=False) + "\n\nReview Purchase Recommendations before ordering."
+        if intent == "inventory":
+            if inventory.empty: return "No inventory records found. Add ingredients in the Inventory section."
+            return "**Current inventory**\n\n" + inventory[["ingredient", "stock_quantity", "unit", "minimum_stock"]].to_markdown(index=False)
+        if intent == "menu":
+            return "Your menu is currently empty." if not menu_items else "**Menu items**\n\n" + "\n".join(f"- {item}" for item in menu_items)
+        if intent == "recipes":
+            return "No recipes are recorded yet." if recipes.empty else "**Saved recipes**\n\n" + recipes.to_markdown(index=False)
+        return ("Hi! I'm Restaurant AI Assistant. I can answer questions using your saved restaurant data.\n\n"
+                "Try asking:\n- What are my total sales?\n- Which item sells the most?\n- Show daily sales\n- Which ingredients are low?\n- Show my inventory\n- List my menu or recipes\n\n"
+                "I use a local ML intent classifier plus rule-based calculations. I don't generate open-ended answers or change your records.")
 
-        if st.session_state.restaurant_ai_messages and st.button("Clear chat history"):
-            st.session_state.restaurant_ai_messages = []
-            st.rerun()
+    if "restaurant_ai_messages" not in st.session_state:
+        st.session_state.restaurant_ai_messages = []
+    for message in st.session_state.restaurant_ai_messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    prompt = st.chat_input("Ask about sales, stock, menu or recipes...")
+    if prompt:
+        st.session_state.restaurant_ai_messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
+        answer = answer_question(prompt)
+        with st.chat_message("assistant"):
+            st.markdown(answer)
+        st.session_state.restaurant_ai_messages.append({"role": "assistant", "content": answer})
+
+    if st.session_state.restaurant_ai_messages and st.button("Clear chat history"):
+        st.session_state.restaurant_ai_messages = []
+        st.rerun()
 
 elif page == "Dashboard":
     total_revenue = float(sales["revenue"].sum()) if not sales.empty else 0.0
