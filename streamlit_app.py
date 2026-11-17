@@ -251,8 +251,8 @@ def show_chart(fig, height=340):
 def money(value): return f"₹{float(value):,.2f}"
 
 if page == "AI Assistant":
-    st.markdown("""<div class="section-label">ASK YOUR RESTAURANT DATA</div>
-    <p style="color:#aab7cc">This assistant works locally using your saved CSV data and a small machine-learning intent classifier. No Gemini API, API key or external AI service is required.</p>""", unsafe_allow_html=True)
+    st.markdown("""<div class="section-label">YOUR RESTAURANT INSIGHTS</div>
+    <p style="color:#aab7cc">Get quick answers about your sales, popular menu items, ingredient stock and recipes. Just type a question in simple words—the assistant will use the information saved in your restaurant app.</p>""", unsafe_allow_html=True)
 
     # Small supervised intent model: trained on example questions at app startup.
     # Rules below provide deterministic, data-grounded answers for each intent.
