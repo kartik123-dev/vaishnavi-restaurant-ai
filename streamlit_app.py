@@ -202,6 +202,7 @@ NAV = {
     "◇  Recipe Builder": "Recipes",
     "🛒  Purchase Planner": "Purchase Recommendations",
     "⇅  Data & Menu": "CSV Data",
+    "✦  AI Assistant": "AI Assistant",
 }
 with st.sidebar:
     st.markdown('<div class="brand-mark"><div class="brand-icon">🍽️</div><div><div class="brand-name">VAISHNAVI AI</div><div class="brand-caption">Restaurant intelligence</div></div></div>', unsafe_allow_html=True)
@@ -233,6 +234,7 @@ PAGE_COPY = {
  "Recipes": ("MENU ENGINEERING", "Recipe builder", "Connect each menu item to the ingredients it consumes."),
  "Purchase Recommendations": ("PROCUREMENT", "Smart purchase planner", "Plan ingredient orders using forecast demand and available stock."),
  "CSV Data": ("DATA WORKSPACE", "Menu & data management", "Manage your menu and export the records behind your dashboard."),
+ "AI Assistant": ("GEMINI AI", "Restaurant AI Assistant", "Ask questions about sales, menu performance and ingredient stock."),
 }
 kicker, heading, subheading = PAGE_COPY[page]
 st.markdown(f'<div class="hero"><div class="hero-kicker">{kicker}</div><div class="hero-title">{heading}</div><div class="hero-sub">{subheading}</div></div>', unsafe_allow_html=True)
@@ -248,7 +250,86 @@ def show_chart(fig, height=340):
 
 def money(value): return f"₹{float(value):,.2f}"
 
-if page == "Dashboard":
+if page == "AI Assistant":
+    st.markdown("""<div class="section-label">ASK YOUR RESTAURANT DATA</div>
+    <p style="color:#aab7cc">Your assistant can explain the figures in your saved sales and inventory records. It does not change or delete your data.</p>""", unsafe_allow_html=True)
+    try:
+        gemini_key = st.secrets.get("GEMINI_API_KEY", "")
+    except Exception:
+        gemini_key = ""
+
+    if not gemini_key:
+        st.warning("Gemini API key is not configured yet.")
+        st.markdown("In Streamlit Cloud, open your app → Settings / Manage app → Secrets and add:")
+        st.code('GEMINI_API_KEY = "paste_your_new_key_here"', language="toml")
+        st.caption("Keep the key private. Never put it in this Python file or commit it to GitHub.")
+    else:
+        if "restaurant_ai_messages" not in st.session_state:
+            st.session_state.restaurant_ai_messages = []
+        for message in st.session_state.restaurant_ai_messages:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+
+        prompt = st.chat_input("Ask about sales, stock, menu or purchases...")
+        if prompt:
+            st.session_state.restaurant_ai_messages.append({"role": "user", "content": prompt})
+            with st.chat_message("user"):
+                st.markdown(prompt)
+
+            # Send only aggregated restaurant figures, not raw transaction rows.
+            if sales.empty:
+                sales_summary = "No sales have been recorded yet."
+            else:
+                by_item = sales.groupby("item", as_index=False).agg(units=("quantity", "sum"), revenue=("revenue", "sum"))
+                by_day = sales.groupby("date", as_index=False).agg(units=("quantity", "sum"), revenue=("revenue", "sum"))
+                sales_summary = (
+                    f"Total revenue: ₹{sales['revenue'].sum():.2f}; total units: {sales['quantity'].sum():.0f}; "
+                    f"recorded sales days: {sales['date'].nunique()}.\n"
+                    f"Sales by menu item: {by_item.to_dict(orient='records')}.\n"
+                    f"Recent daily totals: {by_day.tail(14).to_dict(orient='records')}."
+                )
+            inventory_summary = (
+                inventory[["ingredient", "stock_quantity", "unit", "minimum_stock", "incoming_stock", "safety_stock"]]
+                .to_dict(orient="records") if not inventory.empty else []
+            )
+            menu_summary = menu_items
+            recipe_summary = recipes.to_dict(orient="records") if not recipes.empty else []
+            business_context = (
+                "RESTAURANT DATA (use these figures as the source of truth):\n"
+                f"Sales summary: {sales_summary}\n"
+                f"Menu items: {menu_summary}\n"
+                f"Inventory: {inventory_summary}\n"
+                f"Recipes: {recipe_summary}\n\n"
+                "You are Restaurant AI Assistant. Answer clearly and concisely. Use Indian rupees (₹). "
+                "If data is missing, say so instead of guessing. Distinguish recorded facts from estimates. "
+                "Do not invent sales, prices, stock or predictions. You may calculate simple totals from the supplied data. "
+                "You cannot modify files, place orders, or perform transactions."
+            )
+            history = st.session_state.restaurant_ai_messages[-8:]
+            conversation = "\n".join(
+                ("User: " if m["role"] == "user" else "Assistant: ") + m["content"]
+                for m in history
+            )
+            with st.chat_message("assistant"):
+                with st.spinner("Checking your restaurant data..."):
+                    try:
+                        from google import genai
+                        client = genai.Client(api_key=gemini_key)
+                        response = client.models.generate_content(
+                            model="gemini-3.8-flash",
+                            contents=business_context + "\n\nConversation:\n" + conversation,
+                        )
+                        answer = (response.text or "I couldn't create a text response. Please try again.").strip()
+                    except Exception:
+                        answer = "I couldn't connect to Gemini right now. Check that your API key is valid, the Gemini API is enabled, and your free-tier request limit has not been reached."
+                st.markdown(answer)
+            st.session_state.restaurant_ai_messages.append({"role": "assistant", "content": answer})
+
+        if st.session_state.restaurant_ai_messages and st.button("Clear chat history"):
+            st.session_state.restaurant_ai_messages = []
+            st.rerun()
+
+elif page == "Dashboard":
     total_revenue = float(sales["revenue"].sum()) if not sales.empty else 0.0
     total_units = int(sales["quantity"].sum()) if not sales.empty else 0
     days = sales["date"].nunique() if not sales.empty else 0
