@@ -156,13 +156,13 @@ def purchase_table(inventory, requirements):
 
 # --------------------------- Premium dark interface ---------------------------
 ensure_files()
-st.set_page_config(page_title="fine dining", page_icon="🍽️", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Fine Dining", page_icon="🍽️", layout="wide", initial_sidebar_state="expanded")
 
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
-:root { --bg:#080b14; --panel:#111827; --panel2:#151e30; --line:rgba(148,163,184,.15); --muted:#91a0b8; --text:#edf2ff; --violet:#8b5cf6; --cyan:#22d3ee; }
-html, body, [class*="css"] { font-family:'DM Sans',sans-serif; }
+
+:root { --bg:#080b14; --panel:#111827; --panel2:#151e30; --line:rgba(148,163,184,.15); --muted:#c0cada; --text:#f5f7ff; --violet:#8b5cf6; --cyan:#22d3ee; }
+html, body, [class*="css"] { font-family:Arial, Helvetica, sans-serif; font-size:17px; }
 .stApp { background: radial-gradient(ellipse at 12% 0%, rgba(91,63,173,.18), transparent 34%), radial-gradient(ellipse at 92% 12%, rgba(14,165,233,.10), transparent 30%), var(--bg); color:var(--text); }
 .block-container { padding-top:2rem; padding-bottom:3rem; max-width:1500px; }
 [data-testid="stSidebar"] { background:linear-gradient(180deg,#0d1220 0%,#090d17 100%); border-right:1px solid var(--line); }
@@ -170,26 +170,26 @@ html, body, [class*="css"] { font-family:'DM Sans',sans-serif; }
 [data-testid="stSidebar"] [data-testid="stRadio"] label { border-radius:12px; padding:8px 10px; }
 [data-testid="stSidebar"] [data-testid="stRadio"] label:hover { background:rgba(139,92,246,.12); }
 [data-testid="stMetric"] { background:linear-gradient(145deg,rgba(23,33,53,.96),rgba(15,23,39,.96)); border:1px solid var(--line); border-radius:18px; padding:18px 20px; box-shadow:0 12px 35px rgba(0,0,0,.14); }
-[data-testid="stMetricLabel"] { color:#9aa9c2 !important; font-size:.82rem; }
-[data-testid="stMetricValue"] { color:#f4f7ff !important; font-family:'Manrope',sans-serif; font-weight:800; }
+[data-testid="stMetricLabel"] { color:#e2e8f0 !important; font-size:1rem; }
+[data-testid="stMetricValue"] { color:#f4f7ff !important; font-family:Arial, Helvetica, sans-serif; font-weight:800; }
 [data-testid="stPlotlyChart"] { background:rgba(17,24,39,.72); border:1px solid var(--line); border-radius:18px; padding:8px; }
 [data-testid="stDataFrame"], [data-testid="stTable"] { border:1px solid var(--line); border-radius:14px; overflow:hidden; }
 .stButton > button, .stDownloadButton > button, .stFormSubmitButton > button { border:1px solid rgba(139,92,246,.45); border-radius:11px; background:linear-gradient(110deg,#7047db,#4f46e5); color:white; font-weight:700; min-height:2.65rem; transition:all .18s ease; }
 .stButton > button:hover, .stDownloadButton > button:hover, .stFormSubmitButton > button:hover { border-color:#a78bfa; box-shadow:0 7px 24px rgba(124,58,237,.24); transform:translateY(-1px); color:white; }
-.stTextInput input, .stNumberInput input, .stDateInput input, .stSelectbox div[data-baseweb="select"] > div, .stFileUploader section { background:#111a2b !important; border-color:var(--line) !important; border-radius:10px !important; }
+.stTextInput input, .stNumberInput input, .stDateInput input, .stSelectbox div[data-baseweb="select"] > div, .stFileUploader section { font-size:1rem !important; background:#111a2b !important; border-color:var(--line) !important; border-radius:10px !important; }
 hr { border-color:var(--line); }
-h1,h2,h3 { font-family:'Manrope',sans-serif !important; letter-spacing:-.035em; }
+h1,h2,h3 { font-family:Arial, Helvetica, sans-serif !important; letter-spacing:-.02em; color:#ffffff !important; }
 h1 { font-weight:800 !important; }
 small, .muted { color:var(--muted); }
 .hero { background:linear-gradient(115deg,rgba(109,72,205,.23),rgba(19,148,190,.10) 58%,rgba(17,24,39,.65)); border:1px solid rgba(167,139,250,.22); border-radius:22px; padding:25px 28px; margin-bottom:24px; box-shadow:0 18px 50px rgba(0,0,0,.16); }
-.hero-kicker { color:#b9a5ff; text-transform:uppercase; letter-spacing:.16em; font-size:.72rem; font-weight:800; }
-.hero-title { color:#f7f8ff; font-family:'Manrope',sans-serif; font-size:1.85rem; font-weight:800; margin:.35rem 0 .3rem; }
-.hero-sub { color:#aab7cc; font-size:.95rem; }
+.hero-kicker { color:#d2c5ff; text-transform:uppercase; letter-spacing:.12em; font-size:.88rem; font-weight:800; }
+.hero-title { color:#ffffff; font-family:Arial, Helvetica, sans-serif; font-size:2rem; font-weight:800; margin:.35rem 0 .3rem; }
+.hero-sub { color:#e0e7f3; font-size:1.05rem; line-height:1.6; }
 .brand-mark { display:flex; align-items:center; gap:11px; padding:10px 4px 22px; }
 .brand-icon { width:43px;height:43px;display:grid;place-items:center;border-radius:14px;background:linear-gradient(135deg,#8b5cf6,#2563eb);font-size:1.35rem;box-shadow:0 8px 24px rgba(99,102,241,.28); }
-.brand-name { font-family:'Manrope',sans-serif;font-weight:800;font-size:1.04rem;color:#f3f5ff; }
-.brand-caption { color:#8190aa;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase; }
-.section-label { color:#a99aff; text-transform:uppercase; letter-spacing:.13em; font-size:.72rem; font-weight:800; margin:1rem 0 .45rem; }
+.brand-name { font-family:Arial, Helvetica, sans-serif;font-weight:800;font-size:1.04rem;color:#f3f5ff; }
+.brand-caption { color:#d5deec;font-size:.88rem;letter-spacing:.08em;text-transform:uppercase; }
+.section-label { color:#d8ceff; text-transform:uppercase; letter-spacing:.1em; font-size:.94rem; font-weight:800; margin:1rem 0 .45rem; }
 div[data-testid="stAlert"] { border-radius:13px; }
 </style>
 """, unsafe_allow_html=True)
@@ -234,7 +234,7 @@ PAGE_COPY = {
  "Recipes": ("MENU ENGINEERING", "Recipe builder", "Connect each menu item to the ingredients it consumes."),
  "Purchase Recommendations": ("PROCUREMENT", "Smart purchase planner", "Plan ingredient orders using forecast demand and available stock."),
  "CSV Data": ("DATA WORKSPACE", "Menu & data management", "Manage your menu and export the records behind your dashboard."),
- "AI Assistant": ("OFFLINE SMART ASSISTANT", "Restaurant AI Assistant", "Ask questions about sales, menu performance and ingredient stock — no API key needed."),
+ "AI Assistant": ("OFFLINE SMART ASSISTANT", "Fine Dining Assistant", "Ask questions about sales, menu performance and ingredient stock — no API key needed."),
 }
 kicker, heading, subheading = PAGE_COPY[page]
 st.markdown(f'<div class="hero"><div class="hero-kicker">{kicker}</div><div class="hero-title">{heading}</div><div class="hero-sub">{subheading}</div></div>', unsafe_allow_html=True)
@@ -252,7 +252,7 @@ def money(value): return f"₹{float(value):,.2f}"
 
 if page == "AI Assistant":
     st.markdown("""<div class="section-label">YOUR RESTAURANT INSIGHTS</div>
-    <p style="color:#aab7cc">Get quick answers about your sales, popular menu items, ingredient stock and recipes. Just type a question in simple words—the assistant will use the information saved in your restaurant app.</p>""", unsafe_allow_html=True)
+    <p style="color:#e0e7f3;font-size:1.05rem;line-height:1.7">Get quick answers about your sales, popular menu items, ingredient stock and recipes. Just type a question in simple words—the assistant will use the information saved in your restaurant app.</p>""", unsafe_allow_html=True)
 
     # Small supervised intent model: trained on example questions at app startup.
     # Rules below provide deterministic, data-grounded answers for each intent.
@@ -325,7 +325,7 @@ if page == "AI Assistant":
             return "Your menu is currently empty." if not menu_items else "**Menu items**\n\n" + "\n".join(f"- {item}" for item in menu_items)
         if intent == "recipes":
             return "No recipes are recorded yet." if recipes.empty else "**Saved recipes**\n\n" + recipes.to_markdown(index=False)
-        return ("Hi! I'm Restaurant AI Assistant. I can answer questions using your saved restaurant data.\n\n"
+        return ("Hi! I'm the Fine Dining Assistant. I can answer questions using your saved restaurant data.\n\n"
                 "Try asking:\n- What are my total sales?\n- Which item sells the most?\n- Show daily sales\n- Which ingredients are low?\n- Show my inventory\n- List my menu or recipes\n\n"
                 "I use a local ML intent classifier plus rule-based calculations. I don't generate open-ended answers or change your records.")
 
@@ -511,4 +511,4 @@ elif page == "CSV Data":
     st.code("data/sales.csv\ndata/inventory.csv\ndata/recipes.csv\ndata/menu.csv")
     st.info("Back up the data/ folder regularly. CSV storage is simple for a school project, but it is not a multi-user database.")
 
-st.markdown("<div style='margin-top:42px;padding-top:14px;border-top:1px solid rgba(148,163,184,.12);color:#71809a;font-size:.76rem'>VAISHNAVI RESTAURANT AI · Built with Python, Streamlit, Pandas, Scikit-learn & Plotly</div>",unsafe_allow_html=True)
+st.markdown("<div style='margin-top:42px;padding-top:14px;border-top:1px solid rgba(148,163,184,.12);color:#71809a;font-size:.76rem'>FINE DINING · Built with Python, Streamlit, Pandas, Scikit-learn & Plotly</div>",unsafe_allow_html=True)
