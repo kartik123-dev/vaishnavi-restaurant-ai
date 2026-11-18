@@ -156,7 +156,7 @@ def purchase_table(inventory, requirements):
 
 # --------------------------- Premium dark interface ---------------------------
 ensure_files()
-st.set_page_config(page_title="Vaishnavi Restaurant AI", page_icon="🍽️", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="fine dining", page_icon="🍽️", layout="wide", initial_sidebar_state="expanded")
 
 st.markdown("""
 <style>
@@ -205,7 +205,7 @@ NAV = {
     "✦  AI Assistant": "AI Assistant",
 }
 with st.sidebar:
-    st.markdown('<div class="brand-mark"><div class="brand-icon">🍽️</div><div><div class="brand-name">VAISHNAVI AI</div><div class="brand-caption">Restaurant intelligence</div></div></div>', unsafe_allow_html=True)
+    st.markdown('<div class="brand-mark"><div class="brand-icon">🍽️</div><div><div class="brand-name">FINE DINING</div><div class="brand-caption">Restaurant intelligence</div></div></div>', unsafe_allow_html=True)
     st.markdown('<div class="section-label">WORKSPACE</div>', unsafe_allow_html=True)
     selected = st.radio("Navigation", list(NAV.keys()), label_visibility="collapsed")
     page = NAV.get(selected, "Dashboard")
