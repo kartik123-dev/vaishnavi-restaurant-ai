@@ -177,6 +177,11 @@ html, body, [class*="css"] { font-family:Arial, Helvetica, sans-serif; font-size
 .stButton > button, .stDownloadButton > button, .stFormSubmitButton > button { border:1px solid rgba(139,92,246,.45); border-radius:11px; background:linear-gradient(110deg,#7047db,#4f46e5); color:white; font-weight:700; min-height:2.65rem; transition:all .18s ease; }
 .stButton > button:hover, .stDownloadButton > button:hover, .stFormSubmitButton > button:hover { border-color:#a78bfa; box-shadow:0 7px 24px rgba(124,58,237,.24); transform:translateY(-1px); color:white; }
 .stTextInput input, .stNumberInput input, .stDateInput input, .stSelectbox div[data-baseweb="select"] > div, .stFileUploader section { font-size:1rem !important; background:#111a2b !important; border-color:var(--line) !important; border-radius:10px !important; }
+/* Chat input: high-contrast typing area so the user can clearly read what they type. */
+div[data-testid="stChatInput"] textarea, div[data-testid="stChatInput"] [contenteditable="true"] { background:#ffffff !important; color:#111827 !important; -webkit-text-fill-color:#111827 !important; caret-color:#2563eb !important; font-size:1rem !important; }
+div[data-testid="stChatInput"] textarea::placeholder, div[data-testid="stChatInput"] [contenteditable="true"]::placeholder { color:#4b5563 !important; -webkit-text-fill-color:#4b5563 !important; opacity:1 !important; }
+div[data-testid="stChatInput"] > div { background:#ffffff !important; border:1px solid #2563eb !important; border-radius:13px !important; }
+div[data-testid="stChatInput"] button { color:#1d4ed8 !important; }
 hr { border-color:var(--line); }
 h1,h2,h3 { font-family:Arial, Helvetica, sans-serif !important; letter-spacing:-.02em; color:#ffffff !important; }
 h1 { font-weight:800 !important; }
